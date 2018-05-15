@@ -8,12 +8,6 @@ struct request
    int arrive_time, address, wait_time;
 };
 
-struct node
-{
-   struct request r;
-   struct node* next;
-}
-
 int main (int argc, char *argv[])
 {
    int N; //number of cylinders
@@ -39,9 +33,7 @@ int main (int argc, char *argv[])
 
    char line[2048];
    struct request arr[200]; //maximum request number
-   struct node head_request;
    int i = 0; //number of requests
-   struct node* current_node -> head_request;
 
    //reads file and makes the queue
    while( fgets( line, sizeof(line), fp) != NULL)
@@ -55,12 +47,6 @@ int main (int argc, char *argv[])
       }
       arr[i] = r;
       i++;
-
-      current_node.r = r;
-      struct request r1;
-      current_node.next -> r1;
-      current_node -> current_node.next;
-      
    }
 
    //shows queue

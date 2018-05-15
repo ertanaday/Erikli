@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <stdbool.h>
+#include <math.h>
 
 struct request
 {
@@ -61,8 +62,8 @@ int main (int argc, char *argv[])
    }
 ////////////////////////////////////////////////////////////////////////
 
-   //sstf(arr, i);
-   fcfs(arr);
+   sstf(arr, i);
+   //fcfs(arr);
 }
 
 //FCFS
@@ -70,80 +71,120 @@ void fcfs(struct request arr[]) {
     printf("FCFS DISK SCHEDULING ALGORITHM:\n");
     int i;
     int totalTimeSpent = arr[0].arrive_time;
+    int totalWaitTime = 0;
     int currentPosition = 1;
+    int requestNum = 0;
+    double variance;
+
+    double averageWaitTime;
+    double standardDeviation = 0.0;
+
     for (i = 0; i < sizeof(arr); i++) {
-        //printf("%d, ", arr[i]);
       if(arr[i].arrive_time <= totalTimeSpent){
           arr[i].wait_time = totalTimeSpent - arr[i].arrive_time;
-          printf("wait_time: %d\n", arr[i].wait_time);
+          totalWaitTime += arr[i].wait_time;
+          //printf("wait_time: %d\n", arr[i].wait_time);
           totalTimeSpent += abs(arr[i].address - currentPosition);
           currentPosition = arr[i].address;
+          requestNum++;
     }
       else{
         i--;
         totalTimeSpent++;
+        requestNum++;
       }
 
     }
-    //printf("%d\n", arr[199]);
+
+
+        arr[i].wait_time = abs(totalTimeSpent - arr[i].arrive_time);
+        totalWaitTime += arr[i].wait_time;
     totalTimeSpent += abs(arr[i].address - currentPosition);
-    printf("FCFS: %d\n", totalTimeSpent);
+
+    requestNum++;
+    averageWaitTime = (totalWaitTime +0.0) / (requestNum + 0.0);
+
+    int j = 0;
+    for(j=0; j < sizeof(arr)+1; j++){
+      standardDeviation += pow(arr[j].wait_time - averageWaitTime, 2);
+    }
+
+
+    double calculatedStandardDeviation = sqrt(standardDeviation/(requestNum-1));
+    //printf("wait_time: %d\n", arr[i].wait_time);
+    //printf("request number: %d\n",requestNum);
+    printf("FCFS: %d\t%lf\t%lf\n", totalTimeSpent, averageWaitTime, calculatedStandardDeviation);
 }
 
 //SSTF
 void sstf( struct request arr[], int size )
 {
-   int head = 0; //initial disk head position
-   int closest_request = NULL;
-   int time = arr[0].arrive_time; //initial time
-   printf("time = %d\n", time );
-   int next_position = NULL;//arr[0].address;
-   printf("next_position = %d\n", next_position );
-
+   int currentPosition = 1; //initial disk head position
+   int totalTimeSpent = arr[0].arrive_time; //initial time
+   int next_position = 0;//arr[0].address;
+   int served_request = 0;
+   printf("totalTimeSpent: %d\n", totalTimeSpent );
+   printf("currentPosition: %d\n", currentPosition );
    int k = 0;
    while( k < size)
    {
-      int candidate_next_position = next_position;
-      bool empty_queue = true;
+     //printf("next_position: %d\n", next_position );
+      int b = find_next( arr, currentPosition, totalTimeSpent, &next_position, &served_request );
+      printf("b: %d\n", b );
+      printf("currentPosition: %d\n", currentPosition );
+      printf("totalTimeSpent: %d\n", totalTimeSpent );
+      printf("next_position: %d\n", next_position );
+      printf("served_request: %d\n", served_request );
 
-      //find closest request if available
-      int j = 0;
-      while( arr[j].arrive_time <= time )//while there is request in queue
+      if( b == 1)
       {
-        if( arr[j].arrive_time != -1 )
-        {
-          empty_queue = false;
-
-          candidate_next_position = arr[j].address;
-          printf("candidate_next_position = %d\n", candidate_next_position );
-          if( abs( candidate_next_position - head ) < abs( next_position - head ) )
-          {
-             next_position = candidate_next_position;
-             closest_request = j;
-             printf("closest = %d\n", closest_request );
-          }
-        }
-        j++;
+        totalTimeSpent += abs( next_position - currentPosition );
+        //printf("totalTimeSpent: %d\n", totalTimeSpent );
+        currentPosition = next_position;
+        //printf("currentPosition: %d\n", currentPosition );
+        arr[served_request].arrive_time = -1;
+        k++;
       }
-      printf("next_position2 = %d\n", next_position );
-      printf("time2 = %d\n", time );
-      //update head, time and array
-      time += abs( next_position - head );
-      head = next_position;
-      arr[closest_request].arrive_time = -1;
-      k++;
-      printf("next_position2 = %d\n", next_position );
-      printf("time2 = %d\n", time );
-      for(int i = 0; i<10; i++)
+      else
       {
-         printf("%d %d\n",arr[i].arrive_time, arr[i].address);
+         totalTimeSpent++;
+         printf("totalTimeSpent-----------------: %d\n", totalTimeSpent );
       }
 
-      //if no request is available increment time
-      if(empty_queue)
-      {
-         time++;
-      }
    }
-   printf("result = %d\n", time);
+   printf("result = %d\n", totalTimeSpent);
+}
+
+int find_next(struct request arr[], int currentPosition , int totalTimeSpent,
+  int *next_position, int *served_request){
+  int found_next = -1;
+  int candidate_next_position;
+  int j = 0;
+  for(int i = 0; i<10; i++)
+  {
+     printf("%d %d\n",arr[i].arrive_time, arr[i].address);
+  }
+
+  while( arr[j].arrive_time <= totalTimeSpent )//while there is request in queue
+  {
+    if( arr[j].arrive_time != -1 )
+    {
+      found_next = 1;
+      candidate_next_position = arr[j].address;
+      if(j == 0){
+        *next_position = candidate_next_position;
+        printf("next_position here: %d\n", *next_position );
+        *served_request = 0;
+      }
+      bool b1 = abs( candidate_next_position - currentPosition ) < abs( *next_position - currentPosition );
+      if(b1)
+      {
+         *next_position = candidate_next_position;
+         printf("next_position: %d\n", *next_position );
+         *served_request = j;
+      }
+    }
+    j++;
+  }
+  return found_next;
 }

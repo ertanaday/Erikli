@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <stdbool.h>
 
 struct request
 {
@@ -33,6 +34,11 @@ int main (int argc, char *argv[])
 
    char line[2048];
    struct request arr[200]; //maximum request number
+   for(int i = 0; i < 200; i++){
+      arr[i].arrive_time = -1;
+      arr[i].address = -1;
+      arr[i].wait_time = -1;
+   }
    int i = 0; //number of requests
 
    //reads file and makes the queue
@@ -55,20 +61,55 @@ int main (int argc, char *argv[])
       printf("%d %d\n",arr[i].arrive_time, arr[i].address);
    }
 ////////////////////////////////////////////////////////////////////////
-   int head = 0; //initial disk head position
-
-   //FCFS
    
-   int total_time = 0;
+   sstf(arr, i);
+}
+
+void sstf( struct request arr[], int i )
+{
+   int head = 0; //initial disk head position
+   int closest_request = 0;
+   int time = arr[0].arrive_time; //initial time
+   int next_position = arr[0].address;
+   
+   //SSTF
 
    int k = 0;
    while( i > k){
-      total_time = total_time + arr[k].arrive_time;
+
+      int j = 0;
+      int candidate_next_position;
+      bool empty_queue = true;
+
+      //find closest request if available
+      while( arr[j].arrive_time != -1 && arr[j].arrive_time <= time)//while there is request in queue
+      {
+         empty_queue = false;
+         candidate_next_position = arr[j].address;
+         if( abs( candidate_next_position - head ) < abs( next_position - head ) )
+         {
+            next_position = candidate_next_position;
+            closest_request = j;
+         }
+         j++;
+      }
+
+      //update head, time and array
+      time += abs( next_position - head );
+      head = next_position;
+      arr[closest_request].arrive_time = -1;
+
+      //if no request is available increment time
+      if(empty_queue)
+      {
+         time++;
+      }
+      
+
       k++;
    }
-   printf("%d\n", total_time);
-
-
-
-
+   printf("%d\n", time);
 }
+
+
+

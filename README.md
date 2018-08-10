@@ -2,9 +2,9 @@
 
 A C application simulating the two scheduling algoryhms of a harddrive disk developed on linux machine.
 
-FCFS - First Come First Served 
+FCFS - First Come First Served  | 
 SSTF - Shortest Seek Time First
 
 -----------------
-Ertan Aday
+Ertan Aday  |  
 Furkan Arif Bozdağ
